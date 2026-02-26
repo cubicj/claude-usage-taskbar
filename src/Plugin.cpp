@@ -82,7 +82,7 @@ void ClaudeUsagePlugin::DataRequired()
     m_tooltip.clear();
     if (has_data) {
         wchar_t buf[256];
-        swprintf_s(buf, L"Session (5hr): %.0f%% \u2014 %s\nWeekly (7 day): %.0f%% \u2014 %s",
+        swprintf_s(buf, L"Session (5hr): %.0f%% \u2014 %s\nWeekly (7day): %.0f%% \u2014 %s",
             snap.five_hour_pct, snap.five_hour_resets.c_str(),
             snap.seven_day_pct, snap.seven_day_resets.c_str());
         m_tooltip = buf;
