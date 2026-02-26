@@ -2,19 +2,20 @@
 #include "Settings.h"
 #include <commdlg.h>
 
-static const int kDlgWidth = 420;
-static const int kDlgHeight = 220;
-static const int kMargin = 12;
-static const int kLabelH = 16;
-static const int kEditH = 22;
-static const int kBtnW = 75;
-static const int kBtnH = 26;
-static const int kBrowseW = 60;
-static const int kRowGap = 8;
+static const int kClientW = 700;
+static const int kClientH = 320;
+static const int kMargin = 24;
+static const int kLabelH = 22;
+static const int kEditH = 28;
+static const int kBtnW = 100;
+static const int kBtnH = 34;
+static const int kSmallBtnW = 90;
+static const int kRowGap = 18;
 
 enum CtrlId {
     ID_CRED_PATH = 101,
     ID_BROWSE,
+    ID_DEFAULT,
     ID_ITEM_WIDTH,
     ID_POLL_INTERVAL,
     ID_OK,
@@ -46,7 +47,12 @@ static bool OnOK()
 
     wchar_t buf[MAX_PATH] = {};
     GetWindowTextW(hCredPath, buf, MAX_PATH);
-    settings.credentialsPath = buf;
+    std::wstring path(buf);
+
+    if (path == Settings::GetDefaultCredentialsPath())
+        settings.credentialsPath.clear();
+    else
+        settings.credentialsPath = path;
 
     wchar_t numBuf[16] = {};
     GetWindowTextW(hItemWidth, numBuf, 16);
@@ -77,6 +83,7 @@ static LRESULT CALLBACK DlgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPara
         switch (LOWORD(wParam))
         {
         case ID_BROWSE:   OnBrowse(hWnd); return 0;
+        case ID_DEFAULT:  SetWindowTextW(hCredPath, Settings::GetDefaultCredentialsPath().c_str()); return 0;
         case ID_OK:       if (OnOK()) DestroyWindow(hWnd); return 0;
         case ID_CANCEL:   DestroyWindow(hWnd); return 0;
         }
@@ -107,58 +114,75 @@ bool ShowSettingsDialog(HWND hParent)
         registered = true;
     }
 
+    DWORD style = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU;
+    DWORD exStyle = WS_EX_DLGMODALFRAME;
+    RECT rc = {0, 0, kClientW, kClientH};
+    AdjustWindowRectEx(&rc, style, FALSE, exStyle);
+    int winW = rc.right - rc.left;
+    int winH = rc.bottom - rc.top;
+
     int screenW = GetSystemMetrics(SM_CXSCREEN);
     int screenH = GetSystemMetrics(SM_CYSCREEN);
-    int dlgX = (screenW - kDlgWidth) / 2;
-    int dlgY = (screenH - kDlgHeight) / 2;
 
-    HWND hDlg = CreateWindowExW(WS_EX_DLGMODALFRAME,
-        className, L"Claude Usage Settings",
-        WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU,
-        dlgX, dlgY, kDlgWidth, kDlgHeight,
+    HWND hDlg = CreateWindowExW(exStyle,
+        className, L"Claude Usage Settings", style,
+        (screenW - winW) / 2, (screenH - winH) / 2, winW, winH,
         hParent, nullptr, GetModuleHandle(nullptr), nullptr);
 
     auto& s = Settings::Instance().Get();
+    auto displayPath = s.credentialsPath.empty()
+        ? Settings::GetDefaultCredentialsPath() : s.credentialsPath;
 
     int y = kMargin;
+    int contentW = kClientW - kMargin * 2;
 
     CreateWindowW(L"STATIC", L"Credentials Path:", WS_CHILD | WS_VISIBLE,
-        kMargin, y, 120, kLabelH, hDlg, nullptr, nullptr, nullptr);
-    y += kLabelH + 2;
+        kMargin, y, contentW, kLabelH, hDlg, nullptr, nullptr, nullptr);
+    y += kLabelH + 4;
 
-    int editW = kDlgWidth - kMargin * 3 - kBrowseW - 16;
-    hCredPath = CreateWindowW(L"EDIT", s.credentialsPath.c_str(),
+    int btnRowW = kSmallBtnW * 2 + 8;
+    int editW = contentW - btnRowW - 8;
+    hCredPath = CreateWindowW(L"EDIT", displayPath.c_str(),
         WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL,
         kMargin, y, editW, kEditH, hDlg, (HMENU)ID_CRED_PATH, nullptr, nullptr);
 
+    int btnX = kMargin + editW + 8;
     CreateWindowW(L"BUTTON", L"Browse",
         WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-        kMargin + editW + 4, y, kBrowseW, kEditH, hDlg, (HMENU)ID_BROWSE, nullptr, nullptr);
+        btnX, y, kSmallBtnW, kEditH, hDlg, (HMENU)ID_BROWSE, nullptr, nullptr);
+
+    CreateWindowW(L"BUTTON", L"Default",
+        WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+        btnX + kSmallBtnW + 8, y, kSmallBtnW, kEditH, hDlg, (HMENU)ID_DEFAULT, nullptr, nullptr);
     y += kEditH + kRowGap;
 
-    CreateWindowW(L"STATIC", L"Item Width (DPI-96, 80-400):", WS_CHILD | WS_VISIBLE,
-        kMargin, y, 200, kLabelH, hDlg, nullptr, nullptr, nullptr);
+    int labelW = 210;
+    int numEditX = kMargin + labelW + 8;
+    int numEditW = 80;
+
+    CreateWindowW(L"STATIC", L"Item Width:", WS_CHILD | WS_VISIBLE,
+        kMargin, y + 3, labelW, kLabelH, hDlg, nullptr, nullptr, nullptr);
     wchar_t widthStr[16];
     swprintf_s(widthStr, L"%d", s.itemWidth);
     hItemWidth = CreateWindowW(L"EDIT", widthStr,
         WS_CHILD | WS_VISIBLE | WS_BORDER | ES_NUMBER,
-        220, y, 60, kEditH, hDlg, (HMENU)ID_ITEM_WIDTH, nullptr, nullptr);
+        numEditX, y, numEditW, kEditH, hDlg, (HMENU)ID_ITEM_WIDTH, nullptr, nullptr);
     y += kEditH + kRowGap;
 
-    CreateWindowW(L"STATIC", L"Poll Interval (sec, 10-3600):", WS_CHILD | WS_VISIBLE,
-        kMargin, y, 200, kLabelH, hDlg, nullptr, nullptr, nullptr);
+    CreateWindowW(L"STATIC", L"Poll Interval (sec):", WS_CHILD | WS_VISIBLE,
+        kMargin, y + 3, labelW, kLabelH, hDlg, nullptr, nullptr, nullptr);
     wchar_t pollStr[16];
     swprintf_s(pollStr, L"%d", s.pollInterval);
     hPollInterval = CreateWindowW(L"EDIT", pollStr,
         WS_CHILD | WS_VISIBLE | WS_BORDER | ES_NUMBER,
-        220, y, 60, kEditH, hDlg, (HMENU)ID_POLL_INTERVAL, nullptr, nullptr);
-    y += kEditH + kRowGap + 8;
+        numEditX, y, numEditW, kEditH, hDlg, (HMENU)ID_POLL_INTERVAL, nullptr, nullptr);
+    y += kEditH + kRowGap + 12;
 
-    int btnAreaX = kDlgWidth / 2 - kBtnW - 8 - 8;
+    int btnAreaX = (kClientW - kBtnW * 2 - 16) / 2;
     CreateWindowW(L"BUTTON", L"OK", WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,
         btnAreaX, y, kBtnW, kBtnH, hDlg, (HMENU)ID_OK, nullptr, nullptr);
     CreateWindowW(L"BUTTON", L"Cancel", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-        btnAreaX + kBtnW + 12, y, kBtnW, kBtnH, hDlg, (HMENU)ID_CANCEL, nullptr, nullptr);
+        btnAreaX + kBtnW + 16, y, kBtnW, kBtnH, hDlg, (HMENU)ID_CANCEL, nullptr, nullptr);
 
     HFONT hFont = (HFONT)GetStockObject(DEFAULT_GUI_FONT);
     EnumChildWindows(hDlg, [](HWND hChild, LPARAM lParam) -> BOOL {

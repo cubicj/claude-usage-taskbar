@@ -2,7 +2,8 @@
 
 A [TrafficMonitor](https://github.com/zhongyang219/TrafficMonitor) plugin that displays your Claude AI usage (5-hour session and 7-day weekly) directly in the Windows taskbar.
 
-![screenshot placeholder](docs/screenshot.png)
+![Taskbar display](screenshots/taskbar.png)
+![Tooltip on hover](screenshots/tooltip.png)
 
 ## Prerequisites
 
@@ -14,12 +15,15 @@ A [TrafficMonitor](https://github.com/zhongyang219/TrafficMonitor) plugin that d
 
 1. Download the latest release zip for your architecture from [Releases](https://github.com/cubicj/claude-usage-taskbar/releases)
 2. Extract `claude-usage-taskbar.dll` into TrafficMonitor's `plugins/` folder
+   - To find this folder: **General Settings** → **Plug-in manage** → **Open plugin directory**
 3. Restart TrafficMonitor
-4. Right-click the taskbar area → enable "5h Usage" and/or "7d Usage"
+4. Right-click the taskbar window → **Taskbar Window Settings** → **Display settings...** → check **5h Usage** and/or **7d Usage**
 
 ## Configuration
 
-Right-click TrafficMonitor → Plugin Options → Claude Usage Settings:
+Open settings via either:
+- Right-click the taskbar window → **Plugin Options** → **Claude Usage Settings**
+- **General Settings** → **Plug-in manage** → select the plugin → **Options**
 
 | Setting | Default | Description |
 |---------|---------|-------------|
@@ -28,6 +32,12 @@ Right-click TrafficMonitor → Plugin Options → Claude Usage Settings:
 | Poll Interval | 60 | API poll interval in seconds (10–3600) |
 
 Settings are stored in `claude-usage-taskbar.ini` next to the DLL.
+
+## Usage
+
+- Data refreshes automatically at the configured poll interval (default: 60s)
+- **Click** the plugin item to force an immediate refresh — the display shows `...` while fetching
+- Hover over the item for a tooltip with reset times and error details
 
 ## Troubleshooting
 

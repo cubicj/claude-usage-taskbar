@@ -57,15 +57,20 @@ void Settings::Save()
         std::to_wstring(m_settings.pollInterval).c_str(), ini.c_str());
 }
 
-std::wstring Settings::GetEffectiveCredentialsPath() const
+std::wstring Settings::GetDefaultCredentialsPath()
 {
-    if (!m_settings.credentialsPath.empty())
-        return m_settings.credentialsPath;
-
     wchar_t* profile = nullptr;
-    SHGetKnownFolderPath(FOLDERID_Profile, 0, nullptr, &profile);
+    if (FAILED(SHGetKnownFolderPath(FOLDERID_Profile, 0, nullptr, &profile)) || !profile)
+        return L"";
     std::wstring path(profile);
     CoTaskMemFree(profile);
     path += L"\\.claude\\.credentials.json";
     return path;
+}
+
+std::wstring Settings::GetEffectiveCredentialsPath() const
+{
+    if (!m_settings.credentialsPath.empty())
+        return m_settings.credentialsPath;
+    return GetDefaultCredentialsPath();
 }

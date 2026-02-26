@@ -21,7 +21,7 @@ public:
     int OnMouseEvent(MouseEventType type, int x, int y, void* hWnd, int flag) override;
 
     void SetOwner(ClaudeUsagePlugin* owner) { m_owner = owner; }
-    void UpdateData(double pct, bool has_data);
+    void UpdateData(double pct, bool has_data, bool refreshing);
 
 private:
     const wchar_t* m_name;
@@ -30,6 +30,7 @@ private:
     ClaudeUsagePlugin* m_owner = nullptr;
     double m_pct = 0.0;
     bool m_hasData = false;
+    bool m_refreshing = false;
 };
 
 class ClaudeUsagePlugin : public ITMPlugin
@@ -59,4 +60,6 @@ private:
     ITrafficMonitor* m_pApp = nullptr;
     bool m_notifiedNoCredentials = false;
     bool m_notifiedAuthFailed = false;
+    bool m_refreshing = false;
+    ULONGLONG m_refreshTick = 0;
 };

@@ -25,7 +25,7 @@ int UsageItem::GetItemWidth() const { return Settings::Instance().Get().itemWidt
 void UsageItem::DrawItem(void* hDC, int x, int y, int w, int h, bool dark_mode)
 {
     RenderUsageItem(static_cast<HDC>(hDC), x, y, w, h,
-        dark_mode, m_label, m_pct, m_hasData);
+        dark_mode, m_label, m_pct, m_hasData, m_refreshing);
 }
 
 int UsageItem::OnMouseEvent(MouseEventType type, int x, int y, void* hWnd, int flag)
@@ -37,10 +37,11 @@ int UsageItem::OnMouseEvent(MouseEventType type, int x, int y, void* hWnd, int f
     return 0;
 }
 
-void UsageItem::UpdateData(double pct, bool has_data)
+void UsageItem::UpdateData(double pct, bool has_data, bool refreshing)
 {
     m_pct = pct;
     m_hasData = has_data;
+    m_refreshing = refreshing;
 }
 
 // --- ClaudeUsagePlugin ---
@@ -78,8 +79,11 @@ void ClaudeUsagePlugin::DataRequired()
     auto snap = m_worker.GetSnapshot();
     bool has_data = snap.last_success_tick > 0;
 
-    m_five_hour.UpdateData(snap.five_hour_pct, has_data);
-    m_seven_day.UpdateData(snap.seven_day_pct, has_data);
+    if (m_refreshing && snap.last_success_tick > m_refreshTick)
+        m_refreshing = false;
+
+    m_five_hour.UpdateData(snap.five_hour_pct, has_data, m_refreshing);
+    m_seven_day.UpdateData(snap.seven_day_pct, has_data, m_refreshing);
 
     if (has_data) {
         m_notifiedNoCredentials = false;
@@ -150,6 +154,8 @@ void ClaudeUsagePlugin::OnInitialize(ITrafficMonitor* pApp)
 
 void ClaudeUsagePlugin::RequestRefresh()
 {
+    m_refreshing = true;
+    m_refreshTick = m_worker.GetSnapshot().last_success_tick;
     m_worker.RequestRefresh();
 }
 

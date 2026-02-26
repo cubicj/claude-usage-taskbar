@@ -79,6 +79,7 @@ UsageData WorkerThread::GetSnapshot()
 void WorkerThread::Run()
 {
     while (!m_shutdown) {
+        m_refreshRequested = false;
         auto result = FetchUsageWithAutoRefresh();
 
         {
@@ -103,7 +104,6 @@ void WorkerThread::Run()
             }
         }
 
-        m_refreshRequested = false;
         std::unique_lock<std::mutex> lock(m_mutex);
         auto interval = std::chrono::seconds(Settings::Instance().Get().pollInterval);
         m_cv.wait_for(lock, interval, [this] {

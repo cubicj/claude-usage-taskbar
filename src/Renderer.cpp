@@ -23,8 +23,12 @@ void RenderUsageItem(
     bool dark_mode,
     const wchar_t* label,
     double pct,
-    bool has_data)
+    bool has_data,
+    bool refreshing)
 {
+    RECT itemRect = {x, y, x + w, y + h};
+    ExtTextOut(hdc, 0, 0, ETO_OPAQUE, &itemRect, nullptr, 0, nullptr);
+
     SetBkMode(hdc, TRANSPARENT);
 
     COLORREF labelColor = dark_mode ? kLabelDark : kLabelLight;
@@ -38,7 +42,9 @@ void RenderUsageItem(
         GetTextExtentPoint32W(hdc, label, static_cast<int>(wcslen(label)), &labelSize);
 
     wchar_t pctText[16];
-    if (has_data)
+    if (refreshing)
+        swprintf_s(pctText, L"...");
+    else if (has_data)
         swprintf_s(pctText, L"%.0f%%", pct);
     else
         swprintf_s(pctText, L"--");

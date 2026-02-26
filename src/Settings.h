@@ -23,6 +23,7 @@ public:
 
     std::wstring GetEffectiveCredentialsPath() const;
     std::wstring GetIniPath() const;
+    static std::wstring GetDefaultCredentialsPath();
 
 private:
     Settings() = default;

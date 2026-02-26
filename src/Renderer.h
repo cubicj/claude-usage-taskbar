@@ -18,4 +18,5 @@ void RenderUsageItem(
     bool dark_mode,
     const wchar_t* label,
     double pct,
-    bool has_data);
+    bool has_data,
+    bool refreshing);
