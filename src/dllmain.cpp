@@ -1,3 +1,5 @@
+#include "Plugin.h"
+
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
@@ -9,6 +11,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
         DisableThreadLibraryCalls(hModule);
         break;
     case DLL_PROCESS_DETACH:
+        ClaudeUsagePlugin::Instance().Shutdown();
         break;
     }
     return TRUE;

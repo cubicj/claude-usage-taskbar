@@ -1,7 +1,9 @@
 #include "Plugin.h"
+#include "Renderer.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <shellapi.h>
 
 // --- UsageItem ---
 
@@ -21,7 +23,28 @@ int UsageItem::GetItemWidth() const { return 120; }
 
 void UsageItem::DrawItem(void* hDC, int x, int y, int w, int h, bool dark_mode)
 {
-    // TODO: implement in next session
+    RenderUsageItem(static_cast<HDC>(hDC), x, y, w, h,
+        dark_mode, m_label, m_pct, m_hasData);
+}
+
+int UsageItem::OnMouseEvent(MouseEventType type, int x, int y, void* hWnd, int flag)
+{
+    if (type == MT_LCLICKED && m_owner) {
+        m_owner->RequestRefresh();
+        return 1;
+    }
+    if (type == MT_DBCLICKED) {
+        ShellExecuteW(nullptr, L"open",
+            L"https://claude.ai/settings/usage", nullptr, nullptr, SW_SHOWNORMAL);
+        return 1;
+    }
+    return 0;
+}
+
+void UsageItem::UpdateData(double pct, bool has_data)
+{
+    m_pct = pct;
+    m_hasData = has_data;
 }
 
 // --- ClaudeUsagePlugin ---
@@ -30,6 +53,8 @@ ClaudeUsagePlugin ClaudeUsagePlugin::m_instance;
 
 ClaudeUsagePlugin::ClaudeUsagePlugin()
 {
+    m_five_hour.SetOwner(this);
+    m_seven_day.SetOwner(this);
 }
 
 ClaudeUsagePlugin& ClaudeUsagePlugin::Instance()
@@ -49,7 +74,41 @@ IPluginItem* ClaudeUsagePlugin::GetItem(int index)
 
 void ClaudeUsagePlugin::DataRequired()
 {
-    // TODO: implement in next session
+    if (!m_workerStarted) {
+        m_worker.Start();
+        m_workerStarted = true;
+    }
+
+    auto snap = m_worker.GetSnapshot();
+    bool has_data = snap.last_success_tick > 0;
+
+    m_five_hour.UpdateData(snap.five_hour_pct, has_data);
+    m_seven_day.UpdateData(snap.seven_day_pct, has_data);
+
+    m_tooltip.clear();
+    if (has_data) {
+        wchar_t buf[256];
+        swprintf_s(buf, L"Session (5hr): %.0f%% \u2014 %s\nWeekly (7 day): %.0f%% \u2014 %s",
+            snap.five_hour_pct, snap.five_hour_resets.c_str(),
+            snap.seven_day_pct, snap.seven_day_resets.c_str());
+        m_tooltip = buf;
+    } else {
+        m_tooltip = L"Claude Usage: waiting for data...";
+    }
+
+    if (snap.has_error) {
+        auto elapsed = (GetTickCount64() - snap.last_success_tick) / 1000;
+        wchar_t errBuf[128];
+        if (snap.last_success_tick > 0) {
+            if (elapsed < 60)
+                swprintf_s(errBuf, L"\n\u26A0 Last updated %llds ago", elapsed);
+            else
+                swprintf_s(errBuf, L"\n\u26A0 Last updated %lldm ago", elapsed / 60);
+        } else {
+            swprintf_s(errBuf, L"\n\u26A0 %s", snap.error_msg.c_str());
+        }
+        m_tooltip += errBuf;
+    }
 }
 
 const wchar_t* ClaudeUsagePlugin::GetInfo(PluginInfoIndex index)
@@ -68,7 +127,20 @@ const wchar_t* ClaudeUsagePlugin::GetInfo(PluginInfoIndex index)
 
 const wchar_t* ClaudeUsagePlugin::GetTooltipInfo()
 {
-    return L"Claude Usage: --";
+    return m_tooltip.c_str();
+}
+
+void ClaudeUsagePlugin::RequestRefresh()
+{
+    m_worker.RequestRefresh();
+}
+
+void ClaudeUsagePlugin::Shutdown()
+{
+    if (m_workerStarted) {
+        m_worker.Stop();
+        m_workerStarted = false;
+    }
 }
 
 // --- DLL Export ---

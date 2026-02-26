@@ -86,10 +86,16 @@
   <ItemGroup>
     <ClCompile Include="src\dllmain.cpp" />
     <ClCompile Include="src\Plugin.cpp" />
+    <ClCompile Include="src\ApiClient.cpp" />
+    <ClCompile Include="src\WorkerThread.cpp" />
+    <ClCompile Include="src\Renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\PluginInterface.h" />
     <ClInclude Include="src\Plugin.h" />
+    <ClInclude Include="src\ApiClient.h" />
+    <ClInclude Include="src\WorkerThread.h" />
+    <ClInclude Include="src\Renderer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
