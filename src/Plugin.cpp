@@ -81,6 +81,23 @@ void ClaudeUsagePlugin::DataRequired()
     m_five_hour.UpdateData(snap.five_hour_pct, has_data);
     m_seven_day.UpdateData(snap.seven_day_pct, has_data);
 
+    if (has_data) {
+        m_notifiedNoCredentials = false;
+        m_notifiedAuthFailed = false;
+    }
+
+    if (snap.has_error && m_pApp) {
+        auto& msg = snap.error_msg;
+        if (msg.find(L"credentials") != std::wstring::npos && !m_notifiedNoCredentials) {
+            m_pApp->ShowNotifyMessage(L"Claude Usage: Credentials not found. Install Claude Code and run 'claude login'.");
+            m_notifiedNoCredentials = true;
+        }
+        if (msg.find(L"401") != std::wstring::npos && !m_notifiedAuthFailed) {
+            m_pApp->ShowNotifyMessage(L"Claude Usage: Authentication failed. Run 'claude login' to re-authenticate.");
+            m_notifiedAuthFailed = true;
+        }
+    }
+
     m_tooltip.clear();
     if (has_data) {
         wchar_t buf[256];
@@ -124,6 +141,11 @@ const wchar_t* ClaudeUsagePlugin::GetInfo(PluginInfoIndex index)
 const wchar_t* ClaudeUsagePlugin::GetTooltipInfo()
 {
     return m_tooltip.c_str();
+}
+
+void ClaudeUsagePlugin::OnInitialize(ITrafficMonitor* pApp)
+{
+    m_pApp = pApp;
 }
 
 void ClaudeUsagePlugin::RequestRefresh()

@@ -42,6 +42,7 @@ public:
     const wchar_t* GetInfo(PluginInfoIndex index) override;
     const wchar_t* GetTooltipInfo() override;
     OptionReturn ShowOptionsDialog(void* hParent) override;
+    void OnInitialize(ITrafficMonitor* pApp) override;
 
     void RequestRefresh();
     void Shutdown();
@@ -55,4 +56,7 @@ private:
     WorkerThread m_worker;
     bool m_workerStarted = false;
     std::wstring m_tooltip;
+    ITrafficMonitor* m_pApp = nullptr;
+    bool m_notifiedNoCredentials = false;
+    bool m_notifiedAuthFailed = false;
 };
