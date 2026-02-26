@@ -49,8 +49,8 @@ private:
     ClaudeUsagePlugin();
 
     static ClaudeUsagePlugin m_instance;
-    UsageItem m_five_hour{L"5h Usage", L"claude_5h", L"5h:"};
-    UsageItem m_seven_day{L"7d Usage", L"claude_7d", L"7d:"};
+    UsageItem m_five_hour{L"5h Usage", L"claude_5h", L""};
+    UsageItem m_seven_day{L"7d Usage", L"claude_7d", L""};
     WorkerThread m_worker;
     bool m_workerStarted = false;
     std::wstring m_tooltip;

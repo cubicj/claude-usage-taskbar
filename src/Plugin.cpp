@@ -3,7 +3,6 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <shellapi.h>
 
 // --- UsageItem ---
 
@@ -19,7 +18,7 @@ const wchar_t* UsageItem::GetItemValueText() const { return L"--"; }
 const wchar_t* UsageItem::GetItemValueSampleText() const { return L"100%"; }
 
 bool UsageItem::IsCustomDraw() const { return true; }
-int UsageItem::GetItemWidth() const { return 120; }
+int UsageItem::GetItemWidth() const { return 160; }
 
 void UsageItem::DrawItem(void* hDC, int x, int y, int w, int h, bool dark_mode)
 {
@@ -31,11 +30,6 @@ int UsageItem::OnMouseEvent(MouseEventType type, int x, int y, void* hWnd, int f
 {
     if (type == MT_LCLICKED && m_owner) {
         m_owner->RequestRefresh();
-        return 1;
-    }
-    if (type == MT_DBCLICKED) {
-        ShellExecuteW(nullptr, L"open",
-            L"https://claude.ai/settings/usage", nullptr, nullptr, SW_SHOWNORMAL);
         return 1;
     }
     return 0;

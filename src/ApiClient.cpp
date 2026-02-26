@@ -65,8 +65,8 @@ bool IsTokenExpired(const Credentials& creds)
     return creds.expiresAt <= (nowMs + kTokenExpiryBufferMs);
 }
 
-static const wchar_t* kRefreshHost = L"console.anthropic.com";
-static const wchar_t* kRefreshPath = L"/api/oauth/token";
+static const wchar_t* kRefreshHost = L"platform.claude.com";
+static const wchar_t* kRefreshPath = L"/v1/oauth/token";
 static const char* kClientId = "9d1c250a-e61b-44d9-88ed-5944d1962f5e";
 static const DWORD kTimeoutMs = 10000;
 
@@ -109,7 +109,7 @@ static HttpResponse HttpRequest(
     }
 
     if (headers) {
-        WinHttpAddRequestHeaders(hRequest, headers, -1, WINHTTP_ADDREQ_FLAG_ADD);
+        WinHttpAddRequestHeaders(hRequest, headers, static_cast<DWORD>(-1), WINHTTP_ADDREQ_FLAG_ADD);
     }
 
     BOOL sent = WinHttpSendRequest(hRequest,
@@ -179,6 +179,7 @@ ApiResponse RefreshToken(const Credentials& creds)
     body["grant_type"] = "refresh_token";
     body["refresh_token"] = creds.refreshToken;
     body["client_id"] = kClientId;
+    body["scope"] = "user:profile user:inference user:sessions:claude_code user:mcp_servers";
 
     auto http = HttpRequest(kRefreshHost, kRefreshPath, L"POST",
         L"Content-Type: application/json", body.dump());
