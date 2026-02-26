@@ -1,12 +1,11 @@
 #include "WorkerThread.h"
 #include "ApiClient.h"
+#include "Settings.h"
 
 #include <chrono>
 #include <ctime>
 #include <sstream>
 #include <iomanip>
-
-static const std::chrono::seconds kPollInterval{60};
 
 static std::wstring FormatResetsIn(const std::string& isoTimestamp)
 {
@@ -100,7 +99,8 @@ void WorkerThread::Run()
 
         m_refreshRequested = false;
         std::unique_lock<std::mutex> lock(m_mutex);
-        m_cv.wait_for(lock, kPollInterval, [this] {
+        auto interval = std::chrono::seconds(Settings::Instance().Get().pollInterval);
+        m_cv.wait_for(lock, interval, [this] {
             return m_shutdown.load() || m_refreshRequested.load();
         });
     }

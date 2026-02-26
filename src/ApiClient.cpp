@@ -1,9 +1,9 @@
 #include "ApiClient.h"
+#include "Settings.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <winhttp.h>
-#include <shlobj.h>
 #include <nlohmann/json.hpp>
 
 #include <fstream>
@@ -17,12 +17,7 @@ static const int64_t kTokenExpiryBufferMs = 5 * 60 * 1000;
 
 static std::wstring GetCredentialsPath()
 {
-    wchar_t* profile = nullptr;
-    SHGetKnownFolderPath(FOLDERID_Profile, 0, nullptr, &profile);
-    std::wstring path(profile);
-    CoTaskMemFree(profile);
-    path += L"\\.claude\\.credentials.json";
-    return path;
+    return Settings::Instance().GetEffectiveCredentialsPath();
 }
 
 static std::string ReadFileUtf8(const std::wstring& path)

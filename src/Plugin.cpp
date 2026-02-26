@@ -1,4 +1,5 @@
 #include "Plugin.h"
+#include "Settings.h"
 #include "Renderer.h"
 
 #define WIN32_LEAN_AND_MEAN
@@ -18,7 +19,7 @@ const wchar_t* UsageItem::GetItemValueText() const { return L"--"; }
 const wchar_t* UsageItem::GetItemValueSampleText() const { return L"100%"; }
 
 bool UsageItem::IsCustomDraw() const { return true; }
-int UsageItem::GetItemWidth() const { return 160; }
+int UsageItem::GetItemWidth() const { return Settings::Instance().Get().itemWidth; }
 
 void UsageItem::DrawItem(void* hDC, int x, int y, int w, int h, bool dark_mode)
 {
