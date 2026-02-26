@@ -61,7 +61,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>winhttp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winhttp.lib;comdlg32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -80,7 +80,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>winhttp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winhttp.lib;comdlg32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -90,11 +90,13 @@
     <ClCompile Include="src\WorkerThread.cpp" />
     <ClCompile Include="src\Renderer.cpp" />
     <ClCompile Include="src\Settings.cpp" />
+    <ClCompile Include="src\SettingsDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\PluginInterface.h" />
     <ClInclude Include="src\Plugin.h" />
     <ClInclude Include="src\Settings.h" />
+    <ClInclude Include="src\SettingsDialog.h" />
     <ClInclude Include="src\ApiClient.h" />
     <ClInclude Include="src\WorkerThread.h" />
     <ClInclude Include="src\Renderer.h" />

@@ -1,5 +1,6 @@
 #include "Plugin.h"
 #include "Settings.h"
+#include "SettingsDialog.h"
 #include "Renderer.h"
 
 #define WIN32_LEAN_AND_MEAN
@@ -136,6 +137,19 @@ void ClaudeUsagePlugin::Shutdown()
         m_worker.Stop();
         m_workerStarted = false;
     }
+}
+
+ITMPlugin::OptionReturn ClaudeUsagePlugin::ShowOptionsDialog(void* hParent)
+{
+    auto oldSettings = Settings::Instance().Get();
+    ShowSettingsDialog(static_cast<HWND>(hParent));
+    auto& newSettings = Settings::Instance().Get();
+
+    bool changed = (oldSettings.credentialsPath != newSettings.credentialsPath
+        || oldSettings.itemWidth != newSettings.itemWidth
+        || oldSettings.pollInterval != newSettings.pollInterval);
+
+    return changed ? OR_OPTION_CHANGED : OR_OPTION_UNCHANGED;
 }
 
 // --- DLL Export ---

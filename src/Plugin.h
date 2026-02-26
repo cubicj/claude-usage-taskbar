@@ -41,6 +41,7 @@ public:
     void DataRequired() override;
     const wchar_t* GetInfo(PluginInfoIndex index) override;
     const wchar_t* GetTooltipInfo() override;
+    OptionReturn ShowOptionsDialog(void* hParent) override;
 
     void RequestRefresh();
     void Shutdown();
