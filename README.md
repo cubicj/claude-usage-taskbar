@@ -2,8 +2,9 @@
 
 A [TrafficMonitor](https://github.com/zhongyang219/TrafficMonitor) plugin that displays your Claude AI usage (5-hour session and 7-day weekly) directly in the Windows taskbar.
 
-![Taskbar display](screenshots/taskbar.png)
-![Tooltip on hover](screenshots/tooltip.png)
+| Taskbar | Hover |
+|:---:|:---:|
+| ![Taskbar](screenshots/taskbar.png) | ![Hover](screenshots/tooltip.png) |
 
 ## Prerequisites
 
