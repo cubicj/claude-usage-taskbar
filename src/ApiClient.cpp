@@ -36,7 +36,7 @@ ApiResponse ReadCredentials()
     auto content = ReadFileUtf8(path);
 
     if (content.empty()) {
-        resp.error = "credentials.json not found or empty";
+        resp.error = "credentials not found — install Claude Code and run 'claude login'";
         return resp;
     }
 
