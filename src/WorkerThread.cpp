@@ -88,9 +88,15 @@ void WorkerThread::Run()
                 m_data.seven_day_pct = result.usage.sevenDayPct;
                 m_data.five_hour_resets = FormatResetsIn(result.usage.fiveHourResetsAt);
                 m_data.seven_day_resets = FormatResetsIn(result.usage.sevenDayResetsAt);
-                m_data.has_error = false;
-                m_data.error_msg.clear();
                 m_data.last_success_tick = GetTickCount64();
+
+                if (!result.error.empty()) {
+                    m_data.has_error = true;
+                    m_data.error_msg = Utf8ToWide(result.error);
+                } else {
+                    m_data.has_error = false;
+                    m_data.error_msg.clear();
+                }
             } else {
                 m_data.has_error = true;
                 m_data.error_msg = Utf8ToWide(result.error);

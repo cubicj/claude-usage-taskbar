@@ -225,11 +225,22 @@ ApiResponse FetchUsage(const Credentials& creds)
 
     try {
         auto j = json::parse(http.body);
-        resp.usage.fiveHourPct = j.at("five_hour").at("utilization").get<double>();
-        resp.usage.sevenDayPct = j.at("seven_day").at("utilization").get<double>();
-        resp.usage.fiveHourResetsAt = j.at("five_hour").at("resets_at").get<std::string>();
-        resp.usage.sevenDayResetsAt = j.at("seven_day").at("resets_at").get<std::string>();
+
+        if (j.contains("five_hour") && j["five_hour"].contains("utilization")) {
+            resp.usage.fiveHourPct = j["five_hour"]["utilization"].get<double>();
+            resp.usage.fiveHourResetsAt = j["five_hour"].value("resets_at", "");
+        }
+
+        if (j.contains("seven_day") && j["seven_day"].contains("utilization")) {
+            resp.usage.sevenDayPct = j["seven_day"]["utilization"].get<double>();
+            resp.usage.sevenDayResetsAt = j["seven_day"].value("resets_at", "");
+        }
+
         resp.success = true;
+
+        if (!j.contains("five_hour") || !j.contains("seven_day")) {
+            resp.error = "Partial data: some usage fields missing (unsupported plan?)";
+        }
     } catch (const json::exception& e) {
         resp.error = std::string("Usage response parse error: ") + e.what();
     }
