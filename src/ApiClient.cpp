@@ -226,14 +226,19 @@ ApiResponse FetchUsage(const Credentials& creds)
     try {
         auto j = json::parse(http.body);
 
-        if (j.contains("five_hour") && j["five_hour"].contains("utilization")) {
-            resp.usage.fiveHourPct = j["five_hour"]["utilization"].get<double>();
-            resp.usage.fiveHourResetsAt = j["five_hour"].value("resets_at", "");
+        auto safeDouble = [](const json& v) { return v.is_number() ? v.get<double>() : 0.0; };
+        auto safeString = [](const json& v) { return v.is_string() ? v.get<std::string>() : std::string{}; };
+
+        if (j.contains("five_hour") && j["five_hour"].is_object()) {
+            auto& fh = j["five_hour"];
+            resp.usage.fiveHourPct = safeDouble(fh.value("utilization", json()));
+            resp.usage.fiveHourResetsAt = safeString(fh.value("resets_at", json()));
         }
 
-        if (j.contains("seven_day") && j["seven_day"].contains("utilization")) {
-            resp.usage.sevenDayPct = j["seven_day"]["utilization"].get<double>();
-            resp.usage.sevenDayResetsAt = j["seven_day"].value("resets_at", "");
+        if (j.contains("seven_day") && j["seven_day"].is_object()) {
+            auto& sd = j["seven_day"];
+            resp.usage.sevenDayPct = safeDouble(sd.value("utilization", json()));
+            resp.usage.sevenDayResetsAt = safeString(sd.value("resets_at", json()));
         }
 
         resp.success = true;
